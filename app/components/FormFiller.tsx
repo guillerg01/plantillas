@@ -86,9 +86,26 @@ export default function FormFiller({ template, onSubmit }: FormFillerProps) {
       case "select":
         return (
           <Select
-            value={field.options?.find((opt) => opt === formData[field.name])}
-            onChange={(option) => handleInputChange(field, option?.value)}
-            options={field.options?.map((opt) => ({ value: opt, label: opt }))}
+            value={
+              field.options?.find((opt) =>
+                typeof opt === "string"
+                  ? opt === formData[field.name]
+                  : opt.value === formData[field.name]
+              )
+                ? {
+                    value: formData[field.name] || "",
+                    label: formData[field.name] || "",
+                  }
+                : null
+            }
+            onChange={(option: { value: string; label: string } | null) =>
+              handleInputChange(field, option?.value || "")
+            }
+            options={field.options?.map((opt) =>
+              typeof opt === "string"
+                ? { value: opt, label: opt }
+                : { value: opt.value, label: opt.label }
+            )}
             placeholder="Select an option"
             isClearable
             styles={customSelectStyles}
@@ -144,7 +161,7 @@ export default function FormFiller({ template, onSubmit }: FormFillerProps) {
                         const newValues = e.target.checked
                           ? [...currentValues, checkboxOption.value]
                           : currentValues.filter(
-                              (v) => v !== checkboxOption.value
+                              (v: string) => v !== checkboxOption.value
                             );
 
                         handleInputChange(field, newValues);
@@ -183,21 +200,24 @@ export default function FormFiller({ template, onSubmit }: FormFillerProps) {
       case "radio":
         return (
           <div className="space-y-3">
-            {field.options?.map((option) => (
+            {field.options?.map((option, index) => (
               <div
-                key={option}
+                key={index}
                 className="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
                 <input
                   type="radio"
                   name={field.name}
-                  value={option}
-                  checked={formData[field.name] === option}
+                  value={typeof option === "string" ? option : option.value}
+                  checked={
+                    formData[field.name] ===
+                    (typeof option === "string" ? option : option.value)
+                  }
                   onChange={(e) => handleInputChange(field, e.target.value)}
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 transition-colors duration-200"
                 />
                 <label className="ml-3 text-sm font-medium text-gray-700 cursor-pointer">
-                  {option}
+                  {typeof option === "string" ? option : option.label}
                 </label>
               </div>
             ))}

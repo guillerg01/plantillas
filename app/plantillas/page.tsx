@@ -8,6 +8,7 @@ import FormFiller from "../components/FormFiller";
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
+  console.log(templates);
   const [selectedTemplate, setSelectedTemplate] = useState<FormTemplate | null>(
     null
   );

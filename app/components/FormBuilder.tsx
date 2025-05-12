@@ -1,12 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  FormField as FormFieldType,
-  FormTemplate,
-  FieldType,
-  CheckboxOptions,
-} from "../types/form";
+import { FormTemplate, FieldType, CheckboxOptions } from "../types/form";
 import { v4 as uuidv4 } from "uuid";
 import Select from "react-select";
 
@@ -23,6 +18,7 @@ interface ValidationRules {
   max?: number;
   pattern?: string;
   customValidation?: string;
+  allowedFormats?: string[];
 }
 
 interface FieldCustomization {
@@ -39,11 +35,17 @@ interface FormField {
   type: FieldType;
   label: string;
   name: string;
-  placeholder: string;
+  placeholder?: string;
   defaultValue?: string | string[] | boolean;
   options?: string[] | CheckboxOptions[];
   validation?: ValidationRules;
-  customization?: FieldCustomization;
+  customization?: {
+    color?: string;
+    backgroundColor?: string;
+    borderColor?: string;
+    fontSize?: string;
+    fontWeight?: string;
+  };
   dataType?: "text" | "number" | "email" | "date" | "tel" | "url";
   description?: string;
   helpText?: string;
@@ -56,7 +58,7 @@ export default function FormBuilder({
   onSave,
   initialTemplate,
 }: FormBuilderProps) {
-  const [fields, setFields] = useState<FormFieldType[]>(
+  const [fields, setFields] = useState<FormField[]>(
     initialTemplate?.fields || []
   );
   const [templateName, setTemplateName] = useState(initialTemplate?.name || "");
@@ -67,7 +69,7 @@ export default function FormBuilder({
   const [selectedField, setSelectedField] = useState<string | null>(null);
 
   const addField = (type: FieldType) => {
-    const newField: FormFieldType = {
+    const newField: FormField = {
       id: uuidv4(),
       type,
       label: `New ${type} field`,
@@ -77,7 +79,7 @@ export default function FormBuilder({
     setFields([...fields, newField]);
   };
 
-  const updateField = (id: string, updates: Partial<FormFieldType>) => {
+  const updateField = (id: string, updates: Partial<FormField>) => {
     setFields(
       fields.map((field) =>
         field.id === id ? { ...field, ...updates } : field
@@ -122,7 +124,7 @@ export default function FormBuilder({
     }),
   };
 
-  const getFieldCustomization = (field: FormFieldType) => {
+  const getFieldCustomization = (field: FormField) => {
     return {
       color: field.customization?.color || "text-gray-700",
       backgroundColor: field.customization?.backgroundColor || "bg-white",
@@ -132,7 +134,7 @@ export default function FormBuilder({
     };
   };
 
-  const renderFieldValidation = (field: FormFieldType) => {
+  const renderFieldValidation = (field: FormField) => {
     const renderTypeSpecificValidations = () => {
       switch (field.type) {
         case "text":
@@ -243,10 +245,16 @@ export default function FormBuilder({
                           typeof option === "string" ? false : option.checked
                         }
                         onChange={(e) => {
-                          const newOptions = [...(field.options || [])];
+                          const newOptions = [...(field.options || [])].map(
+                            (opt) =>
+                              typeof opt === "string"
+                                ? { label: opt, value: opt, checked: false }
+                                : opt
+                          );
                           if (typeof option === "string") {
                             newOptions[index] = {
                               label: option,
+                              value: option,
                               checked: e.target.checked,
                             };
                           } else {
@@ -255,7 +263,9 @@ export default function FormBuilder({
                               checked: e.target.checked,
                             };
                           }
-                          updateField(field.id, { options: newOptions });
+                          updateField(field.id, {
+                            options: newOptions as CheckboxOptions[],
+                          });
                         }}
                         className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
                       />
@@ -415,7 +425,7 @@ export default function FormBuilder({
     );
   };
 
-  const renderFieldCustomization = (field: FormFieldType) => (
+  const renderFieldCustomization = (field: FormField) => (
     <div className="space-y-4 mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
       <h4 className="text-lg font-semibold text-gray-700">Personalización</h4>
       <div className="grid grid-cols-2 gap-4">
