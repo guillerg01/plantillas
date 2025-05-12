@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  FormField,
+  FormField as FormFieldType,
   FormTemplate,
   FieldType,
   CheckboxOptions,
@@ -56,7 +56,7 @@ export default function FormBuilder({
   onSave,
   initialTemplate,
 }: FormBuilderProps) {
-  const [fields, setFields] = useState<FormField[]>(
+  const [fields, setFields] = useState<FormFieldType[]>(
     initialTemplate?.fields || []
   );
   const [templateName, setTemplateName] = useState(initialTemplate?.name || "");
@@ -67,7 +67,7 @@ export default function FormBuilder({
   const [selectedField, setSelectedField] = useState<string | null>(null);
 
   const addField = (type: FieldType) => {
-    const newField: FormField = {
+    const newField: FormFieldType = {
       id: uuidv4(),
       type,
       label: `New ${type} field`,
@@ -77,7 +77,7 @@ export default function FormBuilder({
     setFields([...fields, newField]);
   };
 
-  const updateField = (id: string, updates: Partial<FormField>) => {
+  const updateField = (id: string, updates: Partial<FormFieldType>) => {
     setFields(
       fields.map((field) =>
         field.id === id ? { ...field, ...updates } : field
@@ -122,7 +122,7 @@ export default function FormBuilder({
     }),
   };
 
-  const getFieldCustomization = (field: FormField) => {
+  const getFieldCustomization = (field: FormFieldType) => {
     return {
       color: field.customization?.color || "text-gray-700",
       backgroundColor: field.customization?.backgroundColor || "bg-white",
@@ -132,15 +132,15 @@ export default function FormBuilder({
     };
   };
 
-  const renderFieldValidation = (field: FormField) => {
+  const renderFieldValidation = (field: FormFieldType) => {
     const renderTypeSpecificValidations = () => {
       switch (field.type) {
         case "text":
           return (
-            <div className="space-y-4">
-              <div className="p-3 bg-white rounded-lg border border-blue-100">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Formato del Texto
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg border border-blue-100 p-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Formato
                 </label>
                 <select
                   value={field.validation?.pattern || ""}
@@ -152,7 +152,7 @@ export default function FormBuilder({
                       },
                     })
                   }
-                  className="w-full p-2 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-400"
+                  className="w-full p-1.5 text-sm border border-blue-100 rounded focus:ring-1 focus:ring-blue-400"
                 >
                   <option value="">Cualquier texto</option>
                   <option value="[A-Za-z]+">Solo letras</option>
@@ -166,49 +166,39 @@ export default function FormBuilder({
                 </select>
               </div>
 
-              <div className="p-3 bg-white rounded-lg border border-blue-100">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Longitud del Texto
+              <div className="bg-white rounded-lg border border-blue-100 p-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Longitud
                 </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Mínimo de caracteres
-                    </label>
-                    <input
-                      type="number"
-                      value={field.validation?.minLength || ""}
-                      onChange={(e) =>
-                        updateField(field.id, {
-                          validation: {
-                            ...field.validation,
-                            minLength: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                      placeholder="Ej: 3"
-                      className="w-full p-2 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-500 mb-1">
-                      Máximo de caracteres
-                    </label>
-                    <input
-                      type="number"
-                      value={field.validation?.maxLength || ""}
-                      onChange={(e) =>
-                        updateField(field.id, {
-                          validation: {
-                            ...field.validation,
-                            maxLength: parseInt(e.target.value),
-                          },
-                        })
-                      }
-                      placeholder="Ej: 50"
-                      className="w-full p-2 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-400"
-                    />
-                  </div>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={field.validation?.minLength || ""}
+                    onChange={(e) =>
+                      updateField(field.id, {
+                        validation: {
+                          ...field.validation,
+                          minLength: parseInt(e.target.value),
+                        },
+                      })
+                    }
+                    placeholder="Min"
+                    className="w-1/2 p-1.5 text-sm border border-blue-100 rounded focus:ring-1 focus:ring-blue-400"
+                  />
+                  <input
+                    type="number"
+                    value={field.validation?.maxLength || ""}
+                    onChange={(e) =>
+                      updateField(field.id, {
+                        validation: {
+                          ...field.validation,
+                          maxLength: parseInt(e.target.value),
+                        },
+                      })
+                    }
+                    placeholder="Max"
+                    className="w-1/2 p-1.5 text-sm border border-blue-100 rounded focus:ring-1 focus:ring-blue-400"
+                  />
                 </div>
               </div>
             </div>
@@ -217,11 +207,8 @@ export default function FormBuilder({
         case "select":
         case "multiselect":
           return (
-            <div className="p-3 bg-white rounded-lg border border-blue-100">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Selección Múltiple
-              </label>
-              <div className="flex items-center space-x-3">
+            <div className="bg-white rounded-lg border border-blue-100 p-2">
+              <label className="flex items-center space-x-2">
                 <input
                   type="checkbox"
                   checked={field.type === "multiselect"}
@@ -230,26 +217,26 @@ export default function FormBuilder({
                       type: e.target.checked ? "multiselect" : "select",
                     })
                   }
-                  className="w-5 h-5 text-blue-600 focus:ring-blue-400 border-blue-300 rounded-lg"
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
                 />
-                <span className="text-gray-700">
-                  Permitir selección múltiple
+                <span className="text-sm text-gray-700">
+                  Selección múltiple
                 </span>
-              </div>
+              </label>
             </div>
           );
 
         case "checkbox":
         case "radio":
           return (
-            <div className="p-3 bg-white rounded-lg border border-blue-100">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="bg-white rounded-lg border border-blue-100 p-2">
+              <label className="block text-xs font-medium text-gray-700 mb-1">
                 Opciones por Defecto
               </label>
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {Array.isArray(field.options) &&
                   field.options.map((option, index) => (
-                    <div key={index} className="flex items-center space-x-3">
+                    <div key={index} className="flex items-center space-x-2">
                       <input
                         type={field.type === "checkbox" ? "checkbox" : "radio"}
                         checked={
@@ -270,9 +257,9 @@ export default function FormBuilder({
                           }
                           updateField(field.id, { options: newOptions });
                         }}
-                        className="w-5 h-5 text-blue-600 focus:ring-blue-400 border-blue-300 rounded-lg"
+                        className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
                       />
-                      <span className="text-gray-700">
+                      <span className="text-sm text-gray-700">
                         {typeof option === "string" ? option : option.label}
                       </span>
                     </div>
@@ -283,66 +270,58 @@ export default function FormBuilder({
 
         case "image":
           return (
-            <div className="p-3 bg-white rounded-lg border border-blue-100">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Restricciones de Imagen
-              </label>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Tamaño máximo (MB)
-                  </label>
-                  <input
-                    type="number"
-                    value={field.validation?.max || ""}
-                    onChange={(e) =>
-                      updateField(field.id, {
-                        validation: {
-                          ...field.validation,
-                          max: parseInt(e.target.value),
-                        },
-                      })
-                    }
-                    placeholder="Ej: 5"
-                    className="w-full p-2 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">
-                    Formatos permitidos
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {["jpg", "png", "gif"].map((format) => (
-                      <label
-                        key={format}
-                        className="flex items-center space-x-2"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={field.validation?.allowedFormats?.includes(
-                            format
-                          )}
-                          onChange={(e) => {
-                            const formats =
-                              field.validation?.allowedFormats || [];
-                            const newFormats = e.target.checked
-                              ? [...formats, format]
-                              : formats.filter((f) => f !== format);
-                            updateField(field.id, {
-                              validation: {
-                                ...field.validation,
-                                allowedFormats: newFormats,
-                              },
-                            });
-                          }}
-                          className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
-                        />
-                        <span className="text-gray-700">
-                          {format.toUpperCase()}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-white rounded-lg border border-blue-100 p-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Tamaño (MB)
+                </label>
+                <input
+                  type="number"
+                  value={field.validation?.max || ""}
+                  onChange={(e) =>
+                    updateField(field.id, {
+                      validation: {
+                        ...field.validation,
+                        max: parseInt(e.target.value),
+                      },
+                    })
+                  }
+                  placeholder="Ej: 5"
+                  className="w-full p-1.5 text-sm border border-blue-100 rounded focus:ring-1 focus:ring-blue-400"
+                />
+              </div>
+              <div className="bg-white rounded-lg border border-blue-100 p-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Formatos
+                </label>
+                <div className="flex gap-2">
+                  {["jpg", "png", "gif"].map((format) => (
+                    <label key={format} className="flex items-center space-x-1">
+                      <input
+                        type="checkbox"
+                        checked={field.validation?.allowedFormats?.includes(
+                          format
+                        )}
+                        onChange={(e) => {
+                          const formats =
+                            field.validation?.allowedFormats || [];
+                          const newFormats = e.target.checked
+                            ? [...formats, format]
+                            : formats.filter((f) => f !== format);
+                          updateField(field.id, {
+                            validation: {
+                              ...field.validation,
+                              allowedFormats: newFormats,
+                            },
+                          });
+                        }}
+                        className="w-3 h-3 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
+                      />
+                      <span className="text-xs text-gray-700">
+                        {format.toUpperCase()}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
             </div>
@@ -354,75 +333,58 @@ export default function FormBuilder({
     };
 
     return (
-      <div className="space-y-4 mt-4 p-6 bg-blue-50 rounded-xl border border-blue-100">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-semibold text-gray-700">Validaciones</h4>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">Mostrar Ayuda</span>
-            <button
-              type="button"
-              className="p-1 text-blue-500 hover:text-blue-600 focus:outline-none"
-              onClick={() => {
-                alert(
-                  "Las validaciones te ayudan a controlar cómo los usuarios pueden interactuar con este campo. Por ejemplo, puedes hacer que un campo sea obligatorio o establecer un formato específico para emails."
-                );
-              }}
+      <div className="space-y-2 mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+        <div className="flex items-center justify-between mb-2">
+          <h4 className="text-sm font-medium text-gray-700">Validaciones</h4>
+          <button
+            type="button"
+            className="p-1 text-blue-500 hover:text-blue-600 focus:outline-none"
+            onClick={() => {
+              alert(
+                "Las validaciones te ayudan a controlar cómo los usuarios pueden interactuar con este campo."
+              );
+            }}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
         </div>
 
         {/* Validaciones Básicas */}
-        <div className="space-y-3">
-          <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-300 transition-colors duration-200">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex items-center space-x-2 p-2 bg-white rounded-lg border border-blue-100">
             <input
               type="checkbox"
               checked={field.isRequired}
               onChange={(e) =>
                 updateField(field.id, { isRequired: e.target.checked })
               }
-              className="w-5 h-5 text-blue-600 focus:ring-blue-400 border-blue-300 rounded-lg"
+              className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
             />
-            <div>
-              <span className="text-gray-700 font-medium">
-                Campo Obligatorio
-              </span>
-              <p className="text-sm text-gray-500">
-                El usuario debe completar este campo
-              </p>
-            </div>
+            <span className="text-sm text-gray-700">Obligatorio</span>
           </label>
 
-          <label className="flex items-center space-x-3 p-3 bg-white rounded-lg border border-blue-100 hover:border-blue-300 transition-colors duration-200">
+          <label className="flex items-center space-x-2 p-2 bg-white rounded-lg border border-blue-100">
             <input
               type="checkbox"
               checked={field.isDisabled}
               onChange={(e) =>
                 updateField(field.id, { isDisabled: e.target.checked })
               }
-              className="w-5 h-5 text-blue-600 focus:ring-blue-400 border-blue-300 rounded-lg"
+              className="w-4 h-4 text-blue-600 focus:ring-blue-400 border-blue-300 rounded"
             />
-            <div>
-              <span className="text-gray-700 font-medium">
-                Campo Deshabilitado
-              </span>
-              <p className="text-sm text-gray-500">
-                El usuario no podrá modificar este campo
-              </p>
-            </div>
+            <span className="text-sm text-gray-700">Deshabilitado</span>
           </label>
         </div>
 
@@ -430,8 +392,8 @@ export default function FormBuilder({
         {renderTypeSpecificValidations()}
 
         {/* Mensaje de Error Personalizado */}
-        <div className="mt-4 p-3 bg-white rounded-lg border border-blue-100">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="bg-white rounded-lg border border-blue-100 p-2">
+          <label className="block text-xs font-medium text-gray-700 mb-1">
             Mensaje de Error
           </label>
           <input
@@ -446,17 +408,14 @@ export default function FormBuilder({
               })
             }
             placeholder="Ej: Por favor, ingresa un email válido"
-            className="w-full p-2 border-2 border-blue-100 rounded-lg focus:ring-2 focus:ring-blue-400"
+            className="w-full p-1.5 text-sm border border-blue-100 rounded focus:ring-1 focus:ring-blue-400"
           />
-          <p className="mt-1 text-xs text-gray-500">
-            Este mensaje se mostrará cuando el usuario ingrese datos incorrectos
-          </p>
         </div>
       </div>
     );
   };
 
-  const renderFieldCustomization = (field: FormField) => (
+  const renderFieldCustomization = (field: FormFieldType) => (
     <div className="space-y-4 mt-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
       <h4 className="text-lg font-semibold text-gray-700">Personalización</h4>
       <div className="grid grid-cols-2 gap-4">
@@ -594,6 +553,25 @@ export default function FormBuilder({
               key={field.id}
               className="bg-white rounded-xl shadow-xl p-8 space-y-6 border border-blue-100"
             >
+              <div className="flex items-center justify-between mb-4 pb-4 border-b border-blue-100">
+                <div className="flex items-center space-x-3">
+                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    {field.type}
+                  </span>
+                  {field.dataType && (
+                    <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium">
+                      {field.dataType}
+                    </span>
+                  )}
+                </div>
+                <button
+                  onClick={() => removeField(field.id)}
+                  className="px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition-all duration-200"
+                >
+                  Eliminar
+                </button>
+              </div>
+
               <div className="flex justify-between items-center">
                 <input
                   type="text"
@@ -604,12 +582,6 @@ export default function FormBuilder({
                   placeholder="Etiqueta del Campo"
                   className="w-full p-4 border-2 border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-blue-400 text-gray-700 placeholder-gray-400 transition-all duration-200"
                 />
-                <button
-                  onClick={() => removeField(field.id)}
-                  className="ml-4 px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl hover:from-red-600 hover:to-pink-600 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
-                >
-                  Eliminar
-                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
